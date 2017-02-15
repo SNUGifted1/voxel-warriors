@@ -1,4 +1,5 @@
 var undo = [];
+var redo = [];
 function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum) {
     try {
         var number = "";
@@ -25,6 +26,10 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum) {
                             calculate = calculate.split(j).join("playerVariable['" + human.getHumanIdent() + "']['" + j + "']");
                         }
                         console.log("4", calculate);
+						if (calculate.indexOf('.') !== -1 || calculate.indexOf('"') !== -1 || calculate.indexOf("'") !== -1){
+							human.sendMessage("[JavaSecurity]", "해킹 시도 감지!");
+							return;
+						}
                         eval(calculate);
                     }
                 }
@@ -56,29 +61,44 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum) {
                         if (data[i] === 's') { //앞으로 1칸
                             pos[0] += rotate[0];
                             pos[2] += rotate[2];
+							undo[human.getHumanIdent()][undonum].push({
+								pos: pos.slice(),
+								block: Server.getBlock(pos.slice())
+							});
                             Server.setBlock(pos.slice(), type);
-							undo[human.getHumanIdent()][undonum].push(pos.slice());
                         } else if (data[i] === 'd') { //아래로 1칸
                             pos[1] -= 1;
+							undo[human.getHumanIdent()][undonum].push({
+								pos: pos.slice(),
+								block: Server.getBlock(pos.slice())
+							});
                             Server.setBlock(pos.slice(), type);
-							undo[human.getHumanIdent()][undonum].push(pos.slice());
                         } else if (data[i] === 'u') { //위로 1칸
                             pos[1] += 1;
+							undo[human.getHumanIdent()][undonum].push({
+								pos: pos.slice(),
+								block: Server.getBlock(pos.slice())
+							});
                             Server.setBlock(pos.slice(), type);
-							undo[human.getHumanIdent()][undonum].push(pos.slice());
                         } else if (data[i] === 'r') { //오른쪽 1
                             yaw -= Math.PI / 2;
                             pos[0] += Math.round(-Math.sin(yaw));
                             pos[2] += Math.round(-Math.cos(yaw));
+							undo[human.getHumanIdent()][undonum].push({
+								pos: pos.slice(),
+								block: Server.getBlock(pos.slice())
+							});
                             Server.setBlock(pos.slice(), type);
-							undo[human.getHumanIdent()][undonum].push(pos.slice());
                             yaw += Math.PI / 2;
                         } else if (data[i] === 'l') { //왼쪽 1
                             yaw += Math.PI / 2;
                             pos[0] += Math.round(-Math.sin(yaw));
                             pos[2] += Math.round(-Math.cos(yaw));
+							undo[human.getHumanIdent()][undonum].push({
+								pos: pos.slice(),
+								block: Server.getBlock(pos.slice())
+							});
                             Server.setBlock(pos.slice(), type);
-							undo[human.getHumanIdent()][undonum].push(pos.slice());
                             yaw -= Math.PI / 2;
                         } else if (data[i] === 'R') { //오른쪽으로 회전
                             yaw -= Math.PI / 2;
@@ -93,8 +113,11 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum) {
                         } else if (data[i] === 'S') { //앞으로 1칸, 모양 변경
                             pos[0] += rotate[0];
                             pos[2] += rotate[2];
+							undo[human.getHumanIdent()][undonum].push({
+								pos: pos.slice(),
+								block: Server.getBlock(pos.slice())
+							});
                             Server.setBlock(pos.slice(), "voxelBrick");
-							undo[human.getHumanIdent()][undonum].push(pos.slice());
                         } else if (data[i] === '[') {
                             console.log("[", save);
                             save.push({
@@ -189,15 +212,61 @@ function onPlayerChat(event) {
 			return;
 		}
 		var leng = undo[human.getHumanIdent()].length - 1;
+		if (redo[player.getHumanIdent()] === undefined) redo[player.getHumanIdent()] = [];
+		redo[player.getHumanIdent()].push([]);
+		var redoleng = redo[player.getHumanIdent()].length - 1;
 		for (var i in undo[human.getHumanIdent()][leng]){
-			Server.setBlock(undo[human.getHumanIdent()][leng][i], null);
+			redo[human.getHumanIdent()][redoleng].push({
+				pos: undo[human.getHumanIdent()][leng][i].pos.slice(),
+				block: Server.getBlock(undo[human.getHumanIdent()][leng][i].pos.slice())
+			});
+			Server.setBlock(undo[human.getHumanIdent()][leng][i].pos, undo[human.getHumanIdent()][leng][i].block);
 		}
-		human.sendMessage("[JavaMAL]", undo[human.getHumanIdent()][leng].length + "개의 블럭을 되돌렸습니다.");
+		human.sendMessage("[JavaMAL]", undo[human.getHumanIdent()][leng].length + "개의 블럭을 되돌렸어요!");
 		undo[human.getHumanIdent()].splice(leng, 1);
 	} else if (data[0] === "forceundo"){
 		var player = Server.getPlayer(data[1]);
 		if (player === undefined){
-			human.sendMessage("[Error]", data[1] + " 님을 찾을 수 없습니다..");
+			human.sendMessage("[Error]", data[1] + " 님을 찾을 수 없어요!");
+			return;
+		}
+		if (undo[player.getHumanIdent()].length === 0){
+			human.sendMessage("[Error]", "되돌릴 내용이 없어요!");
+			return;
+		}
+		var leng = undo[player.getHumanIdent()].length - 1;
+		if (redo[player.getHumanIdent()] === undefined) redo[player.getHumanIdent()] = [];
+		redo[player.getHumanIdent()].push([]);
+		for (var i in undo[player.getHumanIdent()][leng]){
+			redo[human.getHumanIdent()][redoleng].push({
+				pos: undo[human.getHumanIdent()][leng][i].pos.slice(),
+				block: Server.getBlock(undo[human.getHumanIdent()][leng][i].pos.slice())
+			});
+			Server.setBlock(undo[human.getHumanIdent()][leng][i].pos, undo[human.getHumanIdent()][leng][i].block);
+		}
+		human.sendMessage("[JavaMAL]", undo[player.getHumanIdent()][leng].length + "개의 블럭을 되돌렸어요!");
+		undo[player.getHumanIdent()].splice(leng, 1);
+	} else if (data[0] === "redo"){
+		if (redo[human.getHumanIdent()].length === 0){
+			human.sendMessage("[Error]", "다시 실행할 내용이 없어요!");
+			return;
+		}
+		var leng = redo[human.getHumanIdent()].length - 1;
+		if (undo[player.getHumanIdent()] === undefined) undo[player.getHumanIdent()] = [];
+		undo[player.getHumanIdent()].push([]);
+		for (var i in redo[human.getHumanIdent()][leng]){
+			undo[human.getHumanIdent()][redoleng].push({
+				pos: redo[human.getHumanIdent()][leng][i].pos.slice(),
+				block: Server.getBlock(undo[human.getHumanIdent()][leng][i].pos.slice())
+			});
+			Server.setBlock(redo[human.getHumanIdent()][leng][i], null);
+		}
+		human.sendMessage("[JavaMAL]", redo[human.getHumanIdent()][leng].length + "개의 블럭을 되돌렸습니다.");
+		redo[human.getHumanIdent()].splice(leng, 1);
+	} else if (data[0] === "forceredo"){
+		var player = Server.getPlayer(data[1]);
+		if (player === undefined){
+			human.sendMessage("[Error]", data[1] + " 님을 찾을 수 없습니다.");
 			return;
 		}
 		if (undo[player.getHumanIdent()].length === 0){
@@ -205,6 +274,8 @@ function onPlayerChat(event) {
 			return;
 		}
 		var leng = undo[player.getHumanIdent()].length - 1;
+		if (redo[player.getHumanIdent()] === undefined) redo[player.getHumanIdent()] = [];
+		redo[player.getHumanIdent()].push(undo[player.getHumanIdent()].slice());
 		for (var i in undo[player.getHumanIdent()][leng]){
 			Server.setBlock(undo[player.getHumanIdent()][leng][i], null);
 		}
