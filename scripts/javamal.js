@@ -1,6 +1,7 @@
 var undo = [];
 var redo = [];
-function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum) {
+var maximum = 100;
+function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, blockData) {
     try {
         var number = "";
         for (var i = 0; i < data.length; i++) {
@@ -53,7 +54,7 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum) {
                     }
                     if (close !== undefined) {
                         console.log("javamal", data.substring(i + 1, close));
-                        for (var j = 0; j < number; j++) javamal(data.substring(i + 1, close), human, save, pos, yaw, pitch, rotate, type, undonum);
+                        for (var j = 0; j < number; j++) javamal(data.substring(i + 1, close), human, save, pos, yaw, pitch, rotate, type, undonum, blockData);
                         i += close - i;
                     }
                 } else
@@ -65,21 +66,33 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum) {
 								pos: pos.slice(),
 								block: Server.getBlock(pos.slice())
 							});
-                            Server.setBlock(pos.slice(), type);
+                            //Server.setBlock(pos.slice(), type);
+                            blockData.push({
+                                pos: pos.slice(),
+								block: type
+                            });
                         } else if (data[i] === 'd') { //아래로 1칸
                             pos[1] -= 1;
 							undo[human.getHumanIdent()][undonum].push({
 								pos: pos.slice(),
 								block: Server.getBlock(pos.slice())
 							});
-                            Server.setBlock(pos.slice(), type);
+                            //Server.setBlock(pos.slice(), type);
+                            blockData.push({
+                                pos: pos.slice(),
+								block: type
+                            });
                         } else if (data[i] === 'u') { //위로 1칸
                             pos[1] += 1;
 							undo[human.getHumanIdent()][undonum].push({
 								pos: pos.slice(),
 								block: Server.getBlock(pos.slice())
 							});
-                            Server.setBlock(pos.slice(), type);
+                            //Server.setBlock(pos.slice(), type);
+                            blockData.push({
+                                pos: pos.slice(),
+								block: type
+                            });
                         } else if (data[i] === 'r') { //오른쪽 1
                             yaw -= Math.PI / 2;
                             pos[0] += Math.round(-Math.sin(yaw));
@@ -88,7 +101,11 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum) {
 								pos: pos.slice(),
 								block: Server.getBlock(pos.slice())
 							});
-                            Server.setBlock(pos.slice(), type);
+                            //Server.setBlock(pos.slice(), type);
+                            blockData.push({
+                                pos: pos.slice(),
+								block: type
+                            });
                             yaw += Math.PI / 2;
                         } else if (data[i] === 'l') { //왼쪽 1
                             yaw += Math.PI / 2;
@@ -98,7 +115,11 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum) {
 								pos: pos.slice(),
 								block: Server.getBlock(pos.slice())
 							});
-                            Server.setBlock(pos.slice(), type);
+                            //Server.setBlock(pos.slice(), type);
+                            blockData.push({
+                                pos: pos.slice(),
+								block: type
+                            });
                             yaw -= Math.PI / 2;
                         } else if (data[i] === 'R') { //오른쪽으로 회전
                             yaw -= Math.PI / 2;
@@ -117,7 +138,11 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum) {
 								pos: pos.slice(),
 								block: Server.getBlock(pos.slice())
 							});
-                            Server.setBlock(pos.slice(), "voxelBrick");
+                            //Server.setBlock(pos.slice(), "voxelBrick");
+                            blockData.push({
+                                pos: pos.slice(),
+								block: "voxelBrick"
+                            });
                         } else if (data[i] === '[') {
                             console.log("[", save);
                             save.push({
@@ -179,9 +204,15 @@ function onPlayerChat(event) {
             var pitch = human.getRotation()[2];
             var rotate = [Math.round(-Math.sin(yaw)), Math.round(Math.sin(pitch)), Math.round(-Math.cos(yaw))];
             var type = "voxelDirt";
+            var blockData = [];
 			if (undo[human.getHumanIdent()] === undefined) undo[human.getHumanIdent()] = [];
 			undo[human.getHumanIdent()].push([]);
-            javamal(mal, human, save, pos, yaw, pitch, rotate, type, undo[human.getHumanIdent()].length - 1);
+            javamal(mal, human, save, pos, yaw, pitch, rotate, type, undo[human.getHumanIdent()].length - 1, blockData);
+            if (blockData.length > maximum){
+                human.sendMessage("[JavaSecurity]", "자바말로 " + maximum + "블럭보다 많이 설치할 수 없어요!");
+                return;
+            }
+            for (var i in blockData) Server.setBlock(blockData[i].pos, blockData[i].block);
             playerPromise = _playerPromise;
             playerVariable = _playerVariable;
             human.sendMessage("[JavaMAL]", cmd + " 실행 완료!");
@@ -191,7 +222,7 @@ function onPlayerChat(event) {
     } else if (data[0] === "promise") {
         try {
             if (data[1].length !== 1) {
-                human.sendMessage("[Error]", "함수 / 변수명은 한 글자여야 합니다.");
+                human.sendMessage("[Error]", "함수 / 변수명은 한 글자여야 해요!");
                 return;
             }
             if (isNaN(data[2])) {
@@ -208,7 +239,7 @@ function onPlayerChat(event) {
         }
     } else if (data[0] === "undo"){
 		if (undo[human.getHumanIdent()].length === 0){
-			human.sendMessage("[Error]", "되돌릴 내용이 없습니다.");
+			human.sendMessage("[Error]", "되돌릴 내용이 없어요!");
 			return;
 		}
 		var leng = undo[human.getHumanIdent()].length - 1;
@@ -249,7 +280,7 @@ function onPlayerChat(event) {
 		undo[player.getHumanIdent()].splice(leng, 1);
 	}else if (data[0] === "redo"){
 		if (redo[human.getHumanIdent()].length === 0){
-			human.sendMessage("[Error]", "되돌릴 내용이 없습니다.");
+			human.sendMessage("[Error]", "되돌릴 내용이 없어요!");
 			return;
 		}
 		var leng = redo[human.getHumanIdent()].length - 1;
