@@ -561,13 +561,13 @@ var Socket = {
 						meshes[objectData.id] = mesh;
 					});
 
-					Socket.objectSocket.on('fly', function(objectData){
+					/*Socket.objectSocket.on('fly', function(objectData){
 						if (objectData.strReceiver === undefined || objectData.strReceiver === Player.objectPlayer['1'].strName){
 							Constants.boolPlayerFly = objectData.fly;
 							if (objectData.fly) Constants.dblPlayerGravity = [ 0.0, 0.0, 0.0 ];
 							else Constants.dblPlayerGravity = [ 0.0, -0.01, 0.0 ];
 						}
-					});
+					});*/
 
 					Socket.objectSocket.on('removeMesh', function(objectData){
 						if (meshes[objectData.id] === undefined) return;
@@ -581,7 +581,6 @@ var Socket = {
 					});
 
 					Socket.objectSocket.on('eventChat', function(objectData) {
-						console.log(objectData.strReceiver);
 						if (objectData.strReceiver != Player.objectPlayer['1'].strName && objectData.strReceiver != undefined) return;
 						var Name = objectData.strName;
 						if (Name != "") Name = Name + ": ";
@@ -641,12 +640,14 @@ var Socket = {
 									Player.objectPlayer['1'].strEntity = objectOverwrite[Socket.objectSocket.strIdent].strEntity;
 									Player.objectPlayer['1'].strName = objectOverwrite[Socket.objectSocket.strIdent].strName;
 									Player.objectPlayer['1'].dblPosition = objectOverwrite[Socket.objectSocket.strIdent].dblPosition;
+									Player.objectPlayer['1'].dblGravity = objectOverwrite[Socket.objectSocket.strIdent].dblGravity;
 									Player.objectPlayer['1'].dblAcceleration = objectOverwrite[Socket.objectSocket.strIdent].dblAcceleration;
 									Player.objectPlayer['1'].dblVerlet = objectOverwrite[Socket.objectSocket.strIdent].dblVerlet;
 									Player.objectPlayer['1'].intScore = objectOverwrite[Socket.objectSocket.strIdent].intScore;
 									Player.objectPlayer['1'].intKills = objectOverwrite[Socket.objectSocket.strIdent].intKills;
 									Player.objectPlayer['1'].intDeaths = objectOverwrite[Socket.objectSocket.strIdent].intDeaths;
 									Player.objectPlayer['1'].intHealth = objectOverwrite[Socket.objectSocket.strIdent].intHealth;
+									Player.objectPlayer['1'].boolFly = objectOverwrite[Socket.objectSocket.strIdent].boolFly;
 								}
 							}
 
@@ -882,8 +883,7 @@ window.addEventListener('load', function () {
 				return;
 
 			} else if (Socket.objectSocket === null) {
-				return
-
+				return;
 			}
 
 			{
@@ -891,38 +891,40 @@ window.addEventListener('load', function () {
 			}
 
 			{
+				var multiplier = 1;
+				if (Player.objectPlayer['1'].boolFly) multiplier = 2;
 				if (Input.boolUp === true) {
-					Player.objectPlayer['1'].dblAcceleration[0] -= Constants.dblPlayerMovement[0] * Math.sin(Player.objectPlayer['1'].dblRotation[1]);
+					Player.objectPlayer['1'].dblAcceleration[0] -= Constants.dblPlayerMovement[0] * Math.sin(Player.objectPlayer['1'].dblRotation[1]) * multiplier;
 					Player.objectPlayer['1'].dblAcceleration[1] -= 0.0;
-					Player.objectPlayer['1'].dblAcceleration[2] -= Constants.dblPlayerMovement[0] * Math.cos(Player.objectPlayer['1'].dblRotation[1]);
+					Player.objectPlayer['1'].dblAcceleration[2] -= Constants.dblPlayerMovement[0] * Math.cos(Player.objectPlayer['1'].dblRotation[1]) * multiplier;
 				}
 
 				if (Input.boolDown === true) {
-					Player.objectPlayer['1'].dblAcceleration[0] += Constants.dblPlayerMovement[0] * Math.sin(Player.objectPlayer['1'].dblRotation[1]);
+					Player.objectPlayer['1'].dblAcceleration[0] += Constants.dblPlayerMovement[0] * Math.sin(Player.objectPlayer['1'].dblRotation[1]) * multiplier;
 					Player.objectPlayer['1'].dblAcceleration[1] += 0.0;
-					Player.objectPlayer['1'].dblAcceleration[2] += Constants.dblPlayerMovement[0] * Math.cos(Player.objectPlayer['1'].dblRotation[1]);
+					Player.objectPlayer['1'].dblAcceleration[2] += Constants.dblPlayerMovement[0] * Math.cos(Player.objectPlayer['1'].dblRotation[1]) * multiplier;
 				}
 
 				if (Input.boolLeft === true) {
-					Player.objectPlayer['1'].dblAcceleration[0] -= Constants.dblPlayerMovement[2] * Math.sin(Player.objectPlayer['1'].dblRotation[1] + (0.5 * Math.PI));
+					Player.objectPlayer['1'].dblAcceleration[0] -= Constants.dblPlayerMovement[2] * Math.sin(Player.objectPlayer['1'].dblRotation[1] + (0.5 * Math.PI)) * multiplier;
 					Player.objectPlayer['1'].dblAcceleration[1] -= 0.0;
-					Player.objectPlayer['1'].dblAcceleration[2] -= Constants.dblPlayerMovement[2] * Math.cos(Player.objectPlayer['1'].dblRotation[1] + (0.5 * Math.PI));
+					Player.objectPlayer['1'].dblAcceleration[2] -= Constants.dblPlayerMovement[2] * Math.cos(Player.objectPlayer['1'].dblRotation[1] + (0.5 * Math.PI)) * multiplier;
 				}
 
 				if (Input.boolRight === true) {
-					Player.objectPlayer['1'].dblAcceleration[0] += Constants.dblPlayerMovement[2] * Math.sin(Player.objectPlayer['1'].dblRotation[1] + (0.5 * Math.PI));
+					Player.objectPlayer['1'].dblAcceleration[0] += Constants.dblPlayerMovement[2] * Math.sin(Player.objectPlayer['1'].dblRotation[1] + (0.5 * Math.PI)) * multiplier;
 					Player.objectPlayer['1'].dblAcceleration[1] += 0.0;
-					Player.objectPlayer['1'].dblAcceleration[2] += Constants.dblPlayerMovement[2] * Math.cos(Player.objectPlayer['1'].dblRotation[1] + (0.5 * Math.PI));
+					Player.objectPlayer['1'].dblAcceleration[2] += Constants.dblPlayerMovement[2] * Math.cos(Player.objectPlayer['1'].dblRotation[1] + (0.5 * Math.PI)) * multiplier;
 				}
 
 				if (Input.boolSpace === true) {
-					if (Player.objectPlayer['1'].intJumpcount > 0 || Constants.boolPlayerFly) {
+					if (Player.objectPlayer['1'].intJumpcount > 0 || Player.objectPlayer['1'].boolFly) {
 						{
 							Player.objectPlayer['1'].dblAcceleration[0] += 0.0;
 							Player.objectPlayer['1'].dblAcceleration[1] += Constants.dblPlayerMovement[1];
 							Player.objectPlayer['1'].dblAcceleration[2] += 0.0;
 						}
-						if (!Constants.boolPlayerFly){
+						if (!Player.objectPlayer['1'].boolFly){
 							Player.objectPlayer['1'].intJumpcount -= 1;
 						}
 					}
@@ -932,6 +934,11 @@ window.addEventListener('load', function () {
 					Player.objectPlayer['1'].dblAcceleration[0] += 0.0;
 					Player.objectPlayer['1'].dblAcceleration[1] -= Constants.dblPlayerMovement[1];
 					Player.objectPlayer['1'].dblAcceleration[2] += 0.0;
+				}
+
+				if (Input.boolSpace === false && Input.boolShift === false && Player.objectPlayer['1'].boolFly){
+					Player.objectPlayer['1'].dblAcceleration[1] = 0;
+					Player.objectPlayer['1'].dblVerlet[1] = Player.objectPlayer['1'].dblPosition[1];
 				}
 			}
 
