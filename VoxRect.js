@@ -184,11 +184,13 @@ var VoxConf = require(__dirname + '/VoxConf.js')();
 				'intHealth': 0,
 				'dblPosition': [ 0.0, 0.0, 0.0 ],
 				'dblVerlet': [ 0.0, 0.0, 0.0 ],
+				'dblGravity': [ 0.0, -0.01, 0.0 ],
 				'dblAcceleration': [ 0.0, 0.0, 0.0 ],
 				'dblRotation': [ 0.0, 0.0, 0.0 ],
 				'intJumpcount': 0,
 				'intWalk': 0,
-				'intWeapon': 0
+				'intWeapon': 0,
+				'boolFly': false
 			};
 		}
 
