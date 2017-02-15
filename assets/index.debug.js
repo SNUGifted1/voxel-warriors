@@ -581,7 +581,6 @@ var Socket = {
 					});
 
 					Socket.objectSocket.on('eventChat', function(objectData) {
-						if (objectData.strReceiver != Player.objectPlayer['1'].strName && objectData.strReceiver != undefined) return;
 						var Name = objectData.strName;
 						if (Name != "") Name = Name + ": ";
 						{
