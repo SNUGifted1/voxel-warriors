@@ -55,6 +55,19 @@ Server.getPlayer = function(name) {
 };
 
 /**
+ * 모든 Human을 가져옵니다.
+ * @author Scripter36(1350adwx)
+ * @return {Array}      Human Array
+ */
+Server.getAllPlayers = function() {
+    var ans = [];
+    for (var i in Player.objectPlayer) {
+        ans.push(new Human().setHumanIdent(i));
+    }
+    return ans;
+};
+
+/**
  * 메시지를 전송합니다.
  * @author Scripter36(1350adwx)
  * @param  {String} sender   보내는 사람 이름     * @param  {String} message  보낼 내용
