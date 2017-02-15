@@ -117,7 +117,7 @@ Server.setBlock = function(position, blockType, boolBlocked) {
 
 
 Server.getBlock = function(position){
-	var world = World.objectWorld[(intCoordinate[0] << 20) + (intCoordinate[1] << 10) + (intCoordinate[2] << 0)];
+	var world = World.objectWorld[(position[0] << 20) + (position[1] << 10) + (position[2] << 0)];
 	if (world === undefined) return;
 	return world.strType;
 };
@@ -475,6 +475,21 @@ function Human() {
 	this.isOnline = function(){
 		return Player.objectPlayer[this.HumanIdent] !== undefined;
 	};
+
+    this.setCanFly = function(fly){
+        if (fly === undefined) fly = true;
+        Player.objectPlayer[this.HumanIdent].boolFly = fly === true;
+        if (fly){
+            Player.objectPlayer[this.HumanIdent].dblGravity = [0, 0, 0];
+        }else{
+            Player.objectPlayer[this.HumanIdent].dblGravity = [0, -0.01, 0];
+        }
+        this.update();
+    };
+
+    this.canFly = function(){
+        return Player.objectPlayer[this.HumanIdent].boolFly;
+    };
 }
 
 var NodeRect;
