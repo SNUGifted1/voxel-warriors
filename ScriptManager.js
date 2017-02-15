@@ -75,16 +75,15 @@ Server.getAllPlayers = function() {
  * @deprecated Human.sendMessage를 이용해 주세요.
  */
 Server.sendMessage = function(sender, message, receiver) {
-    if (typeof Human === undefined || receiver instanceof Human === false) {
+    if (typeof receiver === undefined || receiver instanceof Human === false) {
         Socket.objectServer.emit('eventChat', {
             'strName': sender.toString(),
             'strMessage': message.toString()
         });
     } else {
-        Socket.objectServer.emit('eventChat', {
+        receiver.getSocket().emit('eventChat', {
             'strName': sender.toString(),
-            'strMessage': message.toString(),
-            'strReceiver': receiver.getName()
+            'strMessage': message.toString()
         });
     }
 };
@@ -450,15 +449,14 @@ function Human() {
     };
 
     this.showTipMessage = function(message) {
-        Socket.objectServer.emit('showTipMessage', {
-            'strText': message.toString(),
-            'strReceiver': this.getName()
+        this.getSocket().emit('showTipMessage', {
+            'strText': message.toString()
         });
         return this;
     };
 
     this.sendMessage = function(sender, message) {
-        Socket.objectServer.emit('eventChat', {
+        this.getSocket().emit('eventChat', {
             'strName': sender.toString(),
             'strMessage': message.toString(),
             'strReceiver': this.getName()
