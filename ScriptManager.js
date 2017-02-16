@@ -518,6 +518,89 @@ function Human() {
     };
 }
 
+function Mesh(){
+    var objectData = {
+        id: "0",
+        size: [],
+        position: [],
+        rotation: [0, 0, 0],
+        Material: null
+    };
+    this.setID = function(id){
+        objectData.id = id;
+        return this;
+    };
+    this.getID = function(){
+        return objectData.id;
+    };
+    this.setSize = function(size){
+        objectData.size = size;
+        return this;
+    };
+    this.getSize = function(){
+        return objectData.size;
+    };
+    this.setPosition = function(position){
+        objectData.position = position;
+        return this;
+    };
+    this.getPosition = function(){
+        return objectData.position;
+    };
+    this.setRotation = function(rotation){
+        objectData.rotation = rotation;
+        return this;
+    };
+    this.getRotation = function(){
+        return objectData.rotation;
+    };
+    this.setMaterial = function(material){
+        objectData.Material = material;
+        return this;
+    };
+    this.getMaterial = function(){
+        return objectData.Material;
+    };
+    this.show = function(){
+        Socket.objectServer.emit('addMesh', objectData);
+        return this;
+    };
+    this.update = function(){
+        Socket.objectServer.emit('updateMesh', objectData);
+        return this;
+    };
+    this.remove = function(){
+        Socket.objectServer.emit('removeMesh', objectData);
+        return this;
+    };
+    this.moveTo = function(moves, time, rotatetime){
+        for (let i in moves){
+            if (moves[i].type === "move"){
+                this.setPosition(moves[i].position);
+            }else if (moves[i].type === "rotate"){
+                var rotation = this.getRotation().slice();
+                rotation[1] += moves[i].rotation;
+                this.setRotation(rotation);
+            }
+        }
+        Socket.objectServer.emit('moveMesh', {
+            id: this.getID(),
+            moves: moves,
+            time: time,
+            rotatetime: rotatetime
+        });
+    }
+    /*
+    {
+      color: opts.color || 0x000000,
+      wireframe: true,
+      wireframeLinewidth: opts.wireframeLinewidth || 3,
+      transparent: true,
+      opacity: opts.wireframeOpacity || 0.5
+    }
+     */
+}
+
 var NodeRect;
 var Node;
 var Aws;
@@ -602,7 +685,7 @@ exports.init = function(nodeRect) {
                 //스크립트 배열에 넣고
                 module.exports.scripts.push(i);
                 //처음 불러오는 함수 실행
-                i.onLoad(NodeRect, Server, Human);
+                i.onLoad(NodeRect, Server, Human, Mesh);
             }
         });
         loadBannedIP(bannedIP);
