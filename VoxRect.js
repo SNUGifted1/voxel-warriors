@@ -1526,11 +1526,11 @@ var r = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
-r.setPrompt('> ');
+r.setPrompt('');
 r.prompt();
 r.on('line', function(line) {
     ScriptManager.callConsoleCommandEvent(line);
-	r.setPrompt('> ');
+	r.setPrompt('');
 	r.prompt();
 });
 r.on('close', function() {
