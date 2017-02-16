@@ -515,6 +515,15 @@ var Socket = {
                         var geometry = new Voxel.requireVoxelengine.THREE.CubeGeometry(objectData.size[0], objectData.size[1], objectData.size[2]);
                         var material = new Voxel.requireVoxelengine.THREE.MeshBasicMaterial(objectData.Material);
                         var mesh = new Voxel.requireVoxelengine.THREE.Mesh(geometry, material);
+                        Voxel.requireVoxelengine.materials.load([
+                            [
+                                'drone-side', 'drone-front',
+                                'drone-top', 'drone-bottom',
+                                'drone-side', 'drone-side'
+                            ]
+                        ], function(textures) {
+                            Voxel.requireVoxelengine.materials.paint(mesh, textures[0]);
+                        });
                         mesh.position.set(objectData.position[0], objectData.position[1], objectData.position[2]);
                         mesh.rotation.set(objectData.rotation[0], objectData.rotation[1], objectData.rotation[2]);
                         Voxel.requireVoxelengine.scene.add(mesh);
@@ -544,53 +553,53 @@ var Socket = {
                         var nownum = 0;
                         var now;
                         var time;
-						var moveX;
-						var moveY;
-						var moveZ;
-						if (objectData.moves[nownum].type === "move"){
-							now = [meshes[objectData.id].position.x, meshes[objectData.id].position.y, meshes[objectData.id].position.z];
-							time = objectData.time;
-							moveX = objectData.moves[nownum].position[0] - now[0];
-							moveY = objectData.moves[nownum].position[1] - now[1];
-							moveZ = objectData.moves[nownum].position[2] - now[2];
-						}else if (objectData.moves[nownum].type === "rotate"){
-							now = [meshes[objectData.id].rotation.x, meshes[objectData.id].rotation.y, meshes[objectData.id].rotation.z];
-							time = objectData.rotatetime;
-							moveY = objectData.moves[nownum].rotation;
-						}
+                        var moveX;
+                        var moveY;
+                        var moveZ;
+                        if (objectData.moves[nownum].type === "move") {
+                            now = [meshes[objectData.id].position.x, meshes[objectData.id].position.y, meshes[objectData.id].position.z];
+                            time = objectData.time;
+                            moveX = objectData.moves[nownum].position[0] - now[0];
+                            moveY = objectData.moves[nownum].position[1] - now[1];
+                            moveZ = objectData.moves[nownum].position[2] - now[2];
+                        } else if (objectData.moves[nownum].type === "rotate") {
+                            now = [meshes[objectData.id].rotation.x, meshes[objectData.id].rotation.y, meshes[objectData.id].rotation.z];
+                            time = objectData.rotatetime;
+                            moveY = objectData.moves[nownum].rotation;
+                        }
                         var estimated = 0;
                         var move = function() {
                             estimated += 25;
                             if (estimated > time) {
-								if (objectData.moves[nownum].type === "move"){
-									now = [meshes[objectData.id].position.x + moveX, meshes[objectData.id].position.y + moveY, meshes[objectData.id].position.z + moveZ];
-								}else if (objectData.moves[nownum].type === "rotate"){
-									now = [meshes[objectData.id].rotation.x, meshes[objectData.id].rotation.y + moveY, meshes[objectData.id].rotation.z];
-								}
+                                if (objectData.moves[nownum].type === "move") {
+                                    now = [meshes[objectData.id].position.x + moveX, meshes[objectData.id].position.y + moveY, meshes[objectData.id].position.z + moveZ];
+                                } else if (objectData.moves[nownum].type === "rotate") {
+                                    now = [meshes[objectData.id].rotation.x, meshes[objectData.id].rotation.y + moveY, meshes[objectData.id].rotation.z];
+                                }
                                 nownum++;
                                 if (objectData.moves[nownum] === undefined) {
                                     clearInterval(interval);
                                     return;
                                 }
-								if (objectData.moves[nownum].type === "move"){
-									now = [meshes[objectData.id].position.x, meshes[objectData.id].position.y, meshes[objectData.id].position.z];
-									time = objectData.time;
-									moveX = objectData.moves[nownum].position[0] - now[0];
-									moveY = objectData.moves[nownum].position[1] - now[1];
-									moveZ = objectData.moves[nownum].position[2] - now[2];
-								}else if (objectData.moves[nownum].type === "rotate"){
-									now = [meshes[objectData.id].rotation.x, meshes[objectData.id].rotation.y, meshes[objectData.id].rotation.z];
-									time = objectData.rotatetime;
-									moveY = objectData.moves[nownum].rotation;
-								}
+                                if (objectData.moves[nownum].type === "move") {
+                                    now = [meshes[objectData.id].position.x, meshes[objectData.id].position.y, meshes[objectData.id].position.z];
+                                    time = objectData.time;
+                                    moveX = objectData.moves[nownum].position[0] - now[0];
+                                    moveY = objectData.moves[nownum].position[1] - now[1];
+                                    moveZ = objectData.moves[nownum].position[2] - now[2];
+                                } else if (objectData.moves[nownum].type === "rotate") {
+                                    now = [meshes[objectData.id].rotation.x, meshes[objectData.id].rotation.y, meshes[objectData.id].rotation.z];
+                                    time = objectData.rotatetime;
+                                    moveY = objectData.moves[nownum].rotation;
+                                }
                                 estimated = 0;
                             }
                             Voxel.requireVoxelengine.scene.remove(meshes[objectData.id]);
-							if (objectData.moves[nownum].type === "move"){
-                            	meshes[objectData.id].position.set(now[0] + moveX * Math.floor(estimated / time * 100) / 100 , now[1] + moveY * Math.floor(estimated / time * 100) / 100, now[2] + moveZ * Math.floor(estimated / time * 100) / 100);
-							}else if (objectData.moves[nownum].type === "rotate"){
-								meshes[objectData.id].rotation.set(now[0], now[1] + moveY * Math.floor(estimated / time * 100) / 100, now[2]);
-							}
+                            if (objectData.moves[nownum].type === "move") {
+                                meshes[objectData.id].position.set(now[0] + moveX * Math.floor(estimated / time * 100) / 100, now[1] + moveY * Math.floor(estimated / time * 100) / 100, now[2] + moveZ * Math.floor(estimated / time * 100) / 100);
+                            } else if (objectData.moves[nownum].type === "rotate") {
+                                meshes[objectData.id].rotation.set(now[0], now[1] + moveY * Math.floor(estimated / time * 100) / 100, now[2]);
+                            }
                             Voxel.requireVoxelengine.scene.add(meshes[objectData.id]);
                         };
                         var interval = setInterval(move, 25);
@@ -599,6 +608,11 @@ var Socket = {
                     Socket.objectSocket.on('kick', function(objectData) {
                         alert(objectData.strMessage);
                         location.reload();
+                    });
+
+                    Socket.objectSocket.on('setfov', function(objectData) {
+                        Voxel.requireVoxelengine.view.camera.fov = objectData.fov;
+                        Voxel.requireVoxelengine.view.camera.updateProjectionMatrix();
                     });
 
                     Socket.objectSocket.on('showTipMessage', function(objectData) {
