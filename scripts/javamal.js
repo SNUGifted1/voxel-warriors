@@ -413,6 +413,9 @@ function onPlayerChat(event) {
 		}
 		human.sendMessage("[JavaMAL]", redo[player.getHumanIdent()][leng].length + "개의 블럭을 되돌렸어요!");
 		redo[player.getHumanIdent()].splice(leng, 1);
-	}
+	} else if (data[0] === "window") {
+        human.setfov(parseInt(data[1]));
+        human.sendMessage("[JavaMAL]", "FOV를 " + data[1] + "로 조절하였습니다.");
+    }
 }
 ///srssuurrssuurrsshsddddcsuuuuhscdhscdhscdhscduuuuhsddddcsuuuuhsdddcdssuuuu
