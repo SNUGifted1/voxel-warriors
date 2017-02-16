@@ -306,7 +306,14 @@ function onPlayerChat(event) {
             opacity: 0.5
         }).setSize([1, 0.2, 1]).show();
         human.sendMessage("[JavaMAL]", "드론을 만들었어요!");
-    } else if (data[0] === "promise") {
+    } else if (data[0] === "removeDrone"){
+        if (playerDrone[human.getHumanIdent()] === undefined){
+            human.sendMessage("[Error]", "드론이 없어요!");
+            return;
+        }
+        playerDrone[human.getHumanIdent()] = undefined;
+        human.sendMessage("[JavaMAL]", "드론을 제거했어요!");
+    }else if (data[0] === "promise") {
         try {
             if (data[1].length !== 1) {
                 human.sendMessage("[Error]", "함수 / 변수명은 한 글자여야 해요!");
