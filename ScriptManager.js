@@ -516,6 +516,12 @@ function Human() {
         console.log(this.getIP());
         return bannedIP.indexOf(this.getIP()) !== -1;
     };
+
+    this.setfov = function(fov){
+        this.getSocket().emit('setfov', {
+            fov: fov
+        });
+    };
 }
 
 function Mesh(){
