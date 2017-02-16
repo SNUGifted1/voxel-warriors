@@ -15,9 +15,9 @@ var Socket;
 var Xml;
 var Server;
 var Human;
-var THREE;
+var Mesh;
 
-module.exports.onLoad = function(nodeRect, server, human, three){
+module.exports.onLoad = function(nodeRect, server, human, mesh){
 	NodeRect = nodeRect;
 	Node = NodeRect.Node;
 	Aws = NodeRect.Aws;
@@ -34,6 +34,7 @@ module.exports.onLoad = function(nodeRect, server, human, three){
 	Xml = NodeRect.Xml;
     Server = server;
     Human = human;
+	Mesh = mesh;
 	/*SPLIT*/
 	if (typeof onPlayerLogin === 'undefined') var onPlayerLogin = undefined ;
 	module.exports.onPlayerLogin = onPlayerLogin;
