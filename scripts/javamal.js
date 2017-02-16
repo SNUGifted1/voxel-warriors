@@ -1,32 +1,28 @@
 var undo = [];
 var redo = [];
 var maximum = 100;
-function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, blockData) {
+function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, blockData, drone) {
     try {
         var number = "";
         for (var i = 0; i < data.length; i++) {
             if (data[i] === '(') {
                 var calculate = data.substring(i + 1, data.length).split(')')[0];
-                console.log("1", calculate);
                 var changed = false;
                 for (var j in playerVariable[human.getHumanIdent()]) {
                     if (calculate === j) {
                         data = data.replace("(" + calculate + ")", playerVariable[human.getHumanIdent()][j]);
-                        console.log("2", data);
                         changed = true;
                         break;
                     }
                 }
                 if (!changed) {
                     data = data.replace("(" + calculate + ")", "@");
-                    console.log("3", data);
                     if (calculate.startsWith("##")) {
                         type = calculate.replace('##', '');
                     } else {
                         for (var j in playerVariable[human.getHumanIdent()]) {
                             calculate = calculate.split(j).join("playerVariable['" + human.getHumanIdent() + "']['" + j + "']");
                         }
-                        console.log("4", calculate);
 						if (calculate.indexOf('.') !== -1 || calculate.indexOf('"') !== -1 || calculate.indexOf("'") !== -1){
 							human.sendMessage("[JavaSecurity]", "해킹 시도 감지!");
 							return;
@@ -34,7 +30,6 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, bloc
                         eval(calculate);
                     }
                 }
-                console.log("Data[i]", data[i]);
             }
             if (!isNaN(data[i])) {
                 number += data[i];
@@ -53,8 +48,7 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, bloc
                         }
                     }
                     if (close !== undefined) {
-                        console.log("javamal", data.substring(i + 1, close));
-                        for (var j = 0; j < number; j++) javamal(data.substring(i + 1, close), human, save, pos, yaw, pitch, rotate, type, undonum, blockData);
+                        for (var j = 0; j < number; j++) javamal(data.substring(i + 1, close), human, save, pos, yaw, pitch, rotate, type, undonum, blockData, drone);
                         i += close - i;
                     }
                 } else
@@ -62,7 +56,7 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, bloc
                         if (data[i] === 's') { //앞으로 1칸
                             pos[0] += rotate[0];
                             pos[2] += rotate[2];
-							undo[human.getHumanIdent()][undonum].push({
+							if (!drone) undo[human.getHumanIdent()][undonum].push({
 								pos: pos.slice(),
 								block: Server.getBlock(pos.slice())
 							});
@@ -73,7 +67,7 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, bloc
                             });
                         } else if (data[i] === 'd') { //아래로 1칸
                             pos[1] -= 1;
-							undo[human.getHumanIdent()][undonum].push({
+							if (!drone) undo[human.getHumanIdent()][undonum].push({
 								pos: pos.slice(),
 								block: Server.getBlock(pos.slice())
 							});
@@ -84,7 +78,7 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, bloc
                             });
                         } else if (data[i] === 'u') { //위로 1칸
                             pos[1] += 1;
-							undo[human.getHumanIdent()][undonum].push({
+							if (!drone) undo[human.getHumanIdent()][undonum].push({
 								pos: pos.slice(),
 								block: Server.getBlock(pos.slice())
 							});
@@ -94,10 +88,10 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, bloc
 								block: type
                             });
                         } else if (data[i] === 'r') { //오른쪽 1
-                            yaw -= Math.PI / 2;
+                            yaw -= 90;
                             pos[0] += Math.round(-Math.sin(yaw));
                             pos[2] += Math.round(-Math.cos(yaw));
-							undo[human.getHumanIdent()][undonum].push({
+                            if (!drone) undo[human.getHumanIdent()][undonum].push({
 								pos: pos.slice(),
 								block: Server.getBlock(pos.slice())
 							});
@@ -106,12 +100,12 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, bloc
                                 pos: pos.slice(),
 								block: type
                             });
-                            yaw += Math.PI / 2;
+                            yaw += 90;
                         } else if (data[i] === 'l') { //왼쪽 1
-                            yaw += Math.PI / 2;
+                            yaw += 90;
                             pos[0] += Math.round(-Math.sin(yaw));
                             pos[2] += Math.round(-Math.cos(yaw));
-							undo[human.getHumanIdent()][undonum].push({
+							if (!drone) undo[human.getHumanIdent()][undonum].push({
 								pos: pos.slice(),
 								block: Server.getBlock(pos.slice())
 							});
@@ -124,17 +118,27 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, bloc
                         } else if (data[i] === 'R') { //오른쪽으로 회전
                             yaw -= Math.PI / 2;
                             rotate = [Math.round(-Math.sin(yaw)), Math.round(Math.sin(pitch)), Math.round(-Math.cos(yaw))];
+                            if (drone){
+                                blockData.push({
+                                    rotation: -Math.PI / 2
+                                });
+                            }
                         } else if (data[i] === 'L') { //왼쪽으로 회전
                             yaw += Math.PI / 2;
                             rotate = [Math.round(-Math.sin(yaw)), Math.round(Math.sin(pitch)), Math.round(-Math.cos(yaw))];
+                            if (drone){
+                                blockData.push({
+                                    rotation: Math.PI / 2
+                                });
+                            }
                         } else if (data[i] === 'h') { //투명블럭 생성 (블럭 제거)
                             type = null;
                         } else if (data[i] === 'c') { //벽돌블럭 생성
-                            type = "voxelBrick";
+                            type = "voxelDirt";
                         } else if (data[i] === 'S') { //앞으로 1칸, 모양 변경
                             pos[0] += rotate[0];
                             pos[2] += rotate[2];
-							undo[human.getHumanIdent()][undonum].push({
+							if (!drone) undo[human.getHumanIdent()][undonum].push({
 								pos: pos.slice(),
 								block: Server.getBlock(pos.slice())
 							});
@@ -144,13 +148,11 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, bloc
 								block: "voxelBrick"
                             });
                         } else if (data[i] === '[') {
-                            console.log("[", save);
                             save.push({
                                 pos: pos.slice(),
                                 yaw: yaw
                             });
                         } else if (data[i] === ']') {
-                            console.log("]", save);
                             for (var j = 0; j < 3; j++) pos[j] = save[save.length - 1].pos[j];
                             yaw = save[save.length - 1].yaw;
                             rotate = [Math.round(-Math.sin(yaw)), Math.round(Math.sin(pitch)), Math.round(-Math.cos(yaw))];
@@ -167,7 +169,7 @@ function javamal(data, human, save, pos, yaw, pitch, rotate, type, undonum, bloc
 
 var playerPromise = [];
 var playerVariable = [];
-
+var playerDrone = [];
 function onPlayerChat(event) {
     if (!event.getMessage().startsWith('/')) return;
     event.setCanceled();
@@ -197,7 +199,6 @@ function onPlayerChat(event) {
             for (var i = 0; i < maxPlay; i++) {
                 for (var j in playerPromise[human.getHumanIdent()]) mal = mal.split(j).join("<" + playerPromise[human.getHumanIdent()][j] + ">");
             }
-            console.log(mal);
             var save = [];
             var pos = human.getPosition().slice();
             var yaw = human.getRotation()[1];
@@ -207,7 +208,7 @@ function onPlayerChat(event) {
             var blockData = [];
 			if (undo[human.getHumanIdent()] === undefined) undo[human.getHumanIdent()] = [];
 			undo[human.getHumanIdent()].push([]);
-            javamal(mal, human, save, pos, yaw, pitch, rotate, type, undo[human.getHumanIdent()].length - 1, blockData);
+            javamal(mal, human, save, pos, yaw, pitch, rotate, type, undo[human.getHumanIdent()].length - 1, blockData, false);
             if (blockData.length > maximum){
                 human.sendMessage("[JavaSecurity]", "자바말로 " + maximum + "블럭보다 많이 설치할 수 없어요!");
                 return;
@@ -219,6 +220,92 @@ function onPlayerChat(event) {
         } catch (e) {
             human.sendMessage("[Error]", e);
         }
+    } else if (data[0].startsWith("drone")){
+        try {
+            if (playerDrone[human.getHumanIdent()] === undefined){
+                human.sendMessage("[Error]", "드론이 없어요! /makeDrone 명령어로 만들어 보세요.");
+                return;
+            }
+            var _playerPromise = [],
+                _playerVariable = [];
+            for (var i in playerPromise) {
+                _playerPromise[i] = [];
+                for (var j in playerPromise[i]) {
+                    _playerPromise[i][j] = playerPromise[i][j];
+                }
+            }
+            for (var i in playerVariable) {
+                _playerVariable[i] = [];
+                for (var j in playerVariable[i]) {
+                    _playerVariable[i][j] = playerVariable[i][j];
+                }
+            }
+            var maxPlay = 1;
+            if (data[0].indexOf('_') !== -1) maxPlay = parseInt(data[0].split('_')[1]);
+            data.splice(0, 1);
+            var mal = data.join(' ');
+            for (var i = 0; i < maxPlay; i++) {
+                for (var j in playerPromise[human.getHumanIdent()]) mal = mal.split(j).join("<" + playerPromise[human.getHumanIdent()][j] + ">");
+            }
+            var save = [];
+            var pos = playerDrone[human.getHumanIdent()].getPosition().slice();
+            var yaw = playerDrone[human.getHumanIdent()].getRotation()[1];
+            var pitch = playerDrone[human.getHumanIdent()].getRotation()[2];
+            var rotate = [Math.round(-Math.sin(yaw)), Math.round(Math.sin(pitch)), Math.round(-Math.cos(yaw))];
+            var type = "voxelDirt";
+            var blockData = [];
+            javamal(mal, human, save, pos, yaw, pitch, rotate, type, null, blockData, true);
+            if (blockData.length > maximum){
+                human.sendMessage("[JavaSecurity]", "자바말로 " + maximum + "번 이상 움직일 수 없어요!");
+                return;
+            }
+            var movePositions = [];
+            for (var i in blockData){
+                if (blockData[i].pos !== undefined){
+                    movePositions.push({
+                        type: "move",
+                        position: blockData[i].pos.slice()
+                    });
+                }else{
+                    movePositions.push({
+                        type: "rotate",
+                        rotation: blockData[i].rotation
+                    });
+                }
+            }
+            playerDrone[human.getHumanIdent()].moveTo(movePositions, 1000, 500);
+            playerPromise = _playerPromise;
+            playerVariable = _playerVariable;
+            human.sendMessage("[JavaMAL]", cmd + " 실행 완료!");
+        } catch (e) {
+            human.sendMessage("[Error]", e);
+        }
+    } else if (data[0] === "makeDrone"){
+        if (playerDrone[human.getHumanIdent()] !== undefined){
+            human.sendMessage("[Error]", "이미 드론이 있어요!");
+            return;
+        }
+        var rotation = human.getRotation();
+        rotation[2] = 0;
+        rotation[1] %= 2 * Math.PI;
+        while (rotation[1] < 0) rotation[1] += 2 * Math.PI;
+        if (rotation[1] >= Math.PI / 4 && rotation[1] < Math.PI / 4 * 3){
+            rotation[1] = Math.PI / 2;
+        }else if (rotation[1] >= Math.PI / 4 * 3 && rotation[1] < Math.PI / 4 * 5){
+            rotation[1] = Math.PI;
+        }else if (rotation[1] >= Math.PI / 4 * 5 && rotation[1] < Math.PI / 4 * 7){
+            rotation[1] = Math.PI / 2 * 3;
+        }else{
+            rotation[1] = 0;
+        }
+        playerDrone[human.getHumanIdent()] = new Mesh().setID(human.getHumanIdent() + "_drone").setPosition(human.getPosition()).setRotation(rotation).setMaterial({
+            color: 0x000000,
+            wireframe: true,
+            wireframeLinewidth: 3,
+            transparent: true,
+            opacity: 0.5
+        }).setSize([1, 0.2, 1]).show();
+        human.sendMessage("[JavaMAL]", "드론을 만들었어요!");
     } else if (data[0] === "promise") {
         try {
             if (data[1].length !== 1) {
