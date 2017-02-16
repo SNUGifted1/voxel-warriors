@@ -96,7 +96,7 @@ Server.sendMessage = function(sender, message, receiver) {
  */
 Server.setBlock = function(position, blockType, boolBlocked) {
     if (typeof position === 'undefined' || position.length !== 3) return;
-	for (let i in position) position[i] = parseInt(position[i]);
+    for (let i in position) position[i] = parseInt(position[i]);
     if (boolBlocked === undefined) boolBlocked = false;
     boolBlocked = boolBlocked === true;
     if (blockType === undefined || blockType === null) {
@@ -115,27 +115,27 @@ Server.setBlock = function(position, blockType, boolBlocked) {
 };
 
 
-Server.getBlock = function(position){
-	var world = World.objectWorld[(position[0] << 20) + (position[1] << 10) + (position[2] << 0)];
-	if (world === undefined) return;
-	return world.strType;
+Server.getBlock = function(position) {
+    var world = World.objectWorld[(position[0] << 20) + (position[1] << 10) + (position[2] << 0)];
+    if (world === undefined) return;
+    return world.strType;
 };
 
 
-Server.setPhaseRemaining = function(phase){
-	Gameserver.intPhaseRemaining = parseInt(phase);
+Server.setPhaseRemaining = function(phase) {
+    Gameserver.intPhaseRemaining = parseInt(phase);
 };
 
-Server.getPhaseRemaining = function(){
-	return Gameserver.intPhaseRemaining;
+Server.getPhaseRemaining = function() {
+    return Gameserver.intPhaseRemaining;
 };
 
-Server.setPhaseChange = function(bool){
-	exports.isPhaseChange = bool === true;
+Server.setPhaseChange = function(bool) {
+    exports.isPhaseChange = bool === true;
 };
 
-Server.isPhaseChange = function(){
-	return exports.isPhaseChange;
+Server.isPhaseChange = function() {
+    return exports.isPhaseChange;
 };
 
 
@@ -152,11 +152,11 @@ function Human() {
      * 플레이어를 업데이트합니다.
      */
     this.update = function() {
-		exports.sendingPlayerData = true;
+        exports.sendingPlayerData = true;
         Socket.objectServer.emit('eventPlayer', {
             'strBuffer': Player.saveBuffer(null)
         });
-		exports.sendingPlayerData = false;
+        exports.sendingPlayerData = false;
         return this;
     };
 
@@ -164,7 +164,7 @@ function Human() {
      * Human에게만 보내는 소켓을 얻어옵니다.
      * @return {Object} 소켓
      */
-    this.getSocket = function(){
+    this.getSocket = function() {
         return Player.objectPlayer[this.HumanIdent].objectSocket;
     };
 
@@ -320,7 +320,7 @@ function Human() {
      * 플레이어의 좌/우 시야 회전을 가져옵니다.
      * @return {Double} 회전각(Radian)
      */
-    this.getYaw = function(){
+    this.getYaw = function() {
         return Player.objectPlayer[this.HumanIdent].dblRotation[1];
     };
 
@@ -328,7 +328,7 @@ function Human() {
      * 플레이어의 좌/우 시야 회전을 설정합니다..
      * @param {Double} yaw 회전각(Radian)
      */
-    this.setYaw = function(yaw){
+    this.setYaw = function(yaw) {
         Player.objectPlayer[this.HumanIdent].dblRotation[1] = yaw;
         this.update();
         return this;
@@ -338,7 +338,7 @@ function Human() {
      * 플레이어의 위/아래 시야 회전을 가져옵니다.
      * @return {Double} 회전각(Radian)
      */
-    this.getPitch = function(){
+    this.getPitch = function() {
         return Player.objectPlayer[this.HumanIdent].dblRotation[2];
     };
 
@@ -346,7 +346,7 @@ function Human() {
      * 플레이어의 위/아래 시야 회전을 설정합니다..
      * @param {Double} yaw 회전각(Radian)
      */
-    this.setPitch = function(pitch){
+    this.setPitch = function(pitch) {
         Player.objectPlayer[this.HumanIdent].dblRotation[2] = pitch;
         this.update();
         return this;
@@ -470,23 +470,51 @@ function Human() {
 
     };
 
-	this.isOnline = function(){
-		return Player.objectPlayer[this.HumanIdent] !== undefined;
-	};
+    this.isOnline = function() {
+        return Player.objectPlayer[this.HumanIdent] !== undefined;
+    };
 
-    this.setCanFly = function(fly){
+    this.setCanFly = function(fly) {
         if (fly === undefined) fly = true;
         Player.objectPlayer[this.HumanIdent].boolFly = fly === true;
-        if (fly){
+        if (fly) {
             Player.objectPlayer[this.HumanIdent].dblGravity = [0, 0, 0];
-        }else{
+        } else {
             Player.objectPlayer[this.HumanIdent].dblGravity = [0, -0.01, 0];
         }
         this.update();
     };
 
-    this.canFly = function(){
+    this.canFly = function() {
         return Player.objectPlayer[this.HumanIdent].boolFly;
+    };
+
+    this.kick = function(reason) {
+        if (reason === undefined) reason = "서버 관리자에 의해 추방당했습니다.";
+        this.getSocket().emit('kick', {
+            strMessage: reason
+        });
+    };
+
+    this.getIP = function(){
+        var ip = this.getSocket().conn.remoteAddress;
+        if (ip === "::1") return "1";
+        else return ip.split(":")[3];
+    };
+
+    this.ban = function(reason) {
+        if (reason === undefined) reason = "서버 관리자에 의해 추방당했습니다.";
+        this.getSocket().emit('kick', {
+            strMessage: reason
+        });
+        console.log(this.getIP());
+        bannedIP.push(this.getIP());
+        writeBannedIP(bannedIP);
+    };
+
+    this.isBanned = function(){
+        console.log(this.getIP());
+        return bannedIP.indexOf(this.getIP()) !== -1;
     };
 }
 
@@ -504,6 +532,31 @@ var Postgres;
 var Recaptcha;
 var Socket;
 var Xml;
+var bannedIP = [];
+/** @type {Module} 파일 입출력 모듈입니다. */
+var fs = require('fs');
+
+function loadBannedIP(array) {
+    fs.exists('./bannedIP.txt', function(exists) {
+        if (exists) {
+            fs.readFile('./bannedIP.txt', 'utf8', function(error, data) {
+                if (error) throw error;
+                data = data.split('\n');
+                for (var i in data) array[i] = data[i];
+            });
+        } else {
+            fs.writeFile('./bannedIP.txt', '', 'utf8', function(error) {
+                if (error) throw error;
+            });
+        }
+    });
+}
+
+function writeBannedIP(array) {
+    fs.writeFile('./bannedIP.txt', array.join('\n'), 'utf8', function(error) {
+        if (error) throw error;
+    });
+}
 
 
 /** @description 내부 함수들을 정리하고 NodeRect 모듈을 가져오고 스크립트를 불러옵니다.
@@ -526,8 +579,6 @@ exports.init = function(nodeRect) {
     Recaptcha = NodeRect.Recaptcha;
     Socket = NodeRect.Socket;
     Xml = NodeRect.Xml;
-    /** @type {Module} 파일 입출력 모듈입니다. */
-    var fs = require('fs');
     /** @type {Array} 스크립트 모듈들 모음입니다. */
     exports.scripts = [];
     /** @type {Boolean} 스크립트 로딩 완료 여부입니다. */
@@ -554,13 +605,14 @@ exports.init = function(nodeRect) {
                 i.onLoad(NodeRect, Server, Human);
             }
         });
+        loadBannedIP(bannedIP);
         exports.callServerTickEvent();
         //로딩 여부 true
         exports.loaded = true;
-		//플레이어 데이터 보내는 중 false
-		exports.sendingPlayerData = false;
+        //플레이어 데이터 보내는 중 false
+        exports.sendingPlayerData = false;
         //PhaseChange 여부
-		exports.isPhaseChange = true;
+        exports.isPhaseChange = true;
         //로그 띄웁니다.
         console.log("[ScriptManager] " + count + " 개의 스크립트를 로딩했습니다.");
     });
@@ -568,11 +620,12 @@ exports.init = function(nodeRect) {
 
 /** @description 플레이어가 로그인할 시 onPlayerLogin 함수에 전달 될 이벤트입니다.
  * @author Scripter36(1350adwx)
+ * @param {Object} objectSocket 로그인 소켓
  * @param {Object} objectData 로그인 관련 데이터
  * @param {Object} resultData 로그인 처리 결과 데이터
  * @class
  */
-exports.PlayerLoginEvent = function(objectData, resultData) {
+exports.PlayerLoginEvent = function(objectSocket, objectData, resultData) {
     /** @type {Boolean} PlayerLoginEvent의 취소 여부입니다. */
     var canceled = false;
     /** @type {String} PlayerLoginEvent를 취소당한 플레이어가 받을 메시지입니다. */
@@ -609,6 +662,10 @@ exports.PlayerLoginEvent = function(objectData, resultData) {
     this.setName = function(name) {
         objectData.strName = name.toString();
         return this;
+    };
+
+    this.getHuman = function(){
+        return new Human().setHumanIdent(Player.objectPlayer[objectSocket.strIdent].strIdent);
     };
 
     /** @description PlayerLoginEvent를 발동시킨 플레이어의 이름을 반환합니다.
@@ -691,11 +748,16 @@ exports.PlayerLoginEvent = function(objectData, resultData) {
  */
 exports.callPlayerLoginEvent = function(objectData, objectSocket) {
     let event = new exports.PlayerLoginEvent(objectData, objectSocket);
+    if (event.getHuman().isBanned()){
+        event.setCanceled();
+        event.setCanceledMessage("서버 관리자에 의해 밴 당했습니다.");
+    }
     for (let i of exports.scripts) {
         if (typeof i.onPlayerLogin != "undefined") {
             i.onPlayerLogin(event);
         }
     }
+    console.log(event.getName() + "(" + event.getHuman().getIP() + ") 님이 로그인 하셨습니다.");
     return event;
 };
 
@@ -1383,6 +1445,22 @@ exports.callServerTickEvent = function() {
     for (let i of exports.scripts) {
         if (typeof i.onServerTick != "undefined") {
             i.onServerTick();
+        }
+    }
+};
+
+exports.ConsoleCommandEvent = function(line){
+    var message = line;
+    this.getMessage = function(){
+        return message;
+    };
+};
+
+exports.callConsoleCommandEvent = function(line) {
+    var event = new exports.ConsoleCommandEvent(line);
+    for (let i of exports.scripts) {
+        if (typeof i.onConsoleCommand != "undefined") {
+            i.onConsoleCommand(event);
         }
     }
 };
