@@ -51,4 +51,6 @@ module.exports.onLoad = function(nodeRect, server, human, three){
 	module.exports.onBlockBreak = onBlockBreak ;
 	if (typeof onServerTick === 'undefined') var onServerTick = undefined ;
 	module.exports.onServerTick = onServerTick ;
+	if (typeof onConsoleCommand === 'undefined') var onConsoleCommand = undefined ;
+	module.exports.onConsoleCommand = onConsoleCommand ;
 }
