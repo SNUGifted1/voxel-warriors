@@ -280,7 +280,8 @@ var Player = {
 
 				{
 					objectPlayer.dblSize = Constants.dblPlayerSize;
-					//objectPlayer.dblGravity = Constants.dblPlayerGravity;
+					if (objectPlayer.dblGravity === null || objectPlayer.dblGravity === undefined)
+					objectPlayer.dblGravity = Constants.dblPlayerGravity;
 					objectPlayer.dblMaxvel = Constants.dblPlayerMaxvel;
 					objectPlayer.dblFriction = Constants.dblPlayerFriction;
 
