@@ -298,13 +298,13 @@ function onPlayerChat(event) {
         }else{
             rotation[1] = 0;
         }
-        playerDrone[human.getHumanIdent()] = new Mesh().setID(human.getHumanIdent() + "_drone").setPosition(human.getPosition()).setRotation(rotation).setMaterial({
+        playerDrone[human.getHumanIdent()] = new Drone().setID(human.getHumanIdent() + "_drone").setPosition(human.getPosition()).setRotation(rotation).setMaterial({
             color: 0x000000,
             wireframe: true,
             wireframeLinewidth: 3,
             transparent: true,
             opacity: 0.5
-        }).setSize([1, 0.2, 1]).show();
+        }).setSize([1, 1 / 6, 1]).show();
         human.sendMessage("[JavaMAL]", "드론을 만들었어요!");
     } else if (data[0] === "removeDrone"){
         if (playerDrone[human.getHumanIdent()] === undefined){
