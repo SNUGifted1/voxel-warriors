@@ -515,15 +515,42 @@ var Socket = {
                         var geometry = new Voxel.requireVoxelengine.THREE.CubeGeometry(objectData.size[0], objectData.size[1], objectData.size[2]);
                         var material = new Voxel.requireVoxelengine.THREE.MeshBasicMaterial(objectData.Material);
                         var mesh = new Voxel.requireVoxelengine.THREE.Mesh(geometry, material);
-                        Voxel.requireVoxelengine.materials.load([
-                            [
-                                'drone-side', 'drone-front',
-                                'drone-top', 'drone-bottom',
-                                'drone-side', 'drone-side'
-                            ]
-                        ], function(textures) {
-                            Voxel.requireVoxelengine.materials.paint(mesh, textures[0]);
-                        });
+                        mesh.position.set(objectData.position[0], objectData.position[1], objectData.position[2]);
+                        mesh.rotation.set(objectData.rotation[0], objectData.rotation[1], objectData.rotation[2]);
+                        Voxel.requireVoxelengine.scene.add(mesh);
+                        meshes[objectData.id] = mesh;
+                    });
+
+                    Socket.objectSocket.on('addDrone', function(objectData) {
+                        if (meshes[objectData.id] !== undefined) return;
+                        var materialArray = [];
+                        var xplus = Voxel.requireVoxelengine.THREE.ImageUtils.loadTexture('images/drone/' + objectData.type + '-side.png');
+                        var xminus = Voxel.requireVoxelengine.THREE.ImageUtils.loadTexture('images/drone/' + objectData.type + '-side.png');
+                        var yplus = Voxel.requireVoxelengine.THREE.ImageUtils.loadTexture('images/drone/' + objectData.type + '-top.png');
+                        var yminus = Voxel.requireVoxelengine.THREE.ImageUtils.loadTexture('images/drone/' + objectData.type + '-bottom.png');
+                        var zplus = Voxel.requireVoxelengine.THREE.ImageUtils.loadTexture('images/drone/' + objectData.type + '-side.png');
+                        var zminus = Voxel.requireVoxelengine.THREE.ImageUtils.loadTexture('images/drone/' + objectData.type + '-side.png');
+                        materialArray.push(new Voxel.requireVoxelengine.THREE.MeshBasicMaterial({
+                            map: xplus
+                        }));
+                        materialArray.push(new Voxel.requireVoxelengine.THREE.MeshBasicMaterial({
+                            map: xminus
+                        }));
+                        materialArray.push(new Voxel.requireVoxelengine.THREE.MeshBasicMaterial({
+                            map: yplus
+                        }));
+                        materialArray.push(new Voxel.requireVoxelengine.THREE.MeshBasicMaterial({
+                            map: yminus
+                        }));
+                        materialArray.push(new Voxel.requireVoxelengine.THREE.MeshBasicMaterial({
+                            map: zplus
+                        }));
+                        materialArray.push(new Voxel.requireVoxelengine.THREE.MeshBasicMaterial({
+                            map: zminus
+                        }));
+                        var material = new Voxel.requireVoxelengine.THREE.MeshFaceMaterial(materialArray);
+                        var geometry = new Voxel.requireVoxelengine.THREE.CubeGeometry(1, 1/6, 1, undefined, undefined, undefined, materialArray);
+                        var mesh = new Voxel.requireVoxelengine.THREE.Mesh(geometry, material);
                         mesh.position.set(objectData.position[0], objectData.position[1], objectData.position[2]);
                         mesh.rotation.set(objectData.rotation[0], objectData.rotation[1], objectData.rotation[2]);
                         Voxel.requireVoxelengine.scene.add(mesh);
