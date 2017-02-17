@@ -138,6 +138,19 @@ Server.isPhaseChange = function() {
     return exports.isPhaseChange;
 };
 
+Server.banIP = function(ip){
+    ip = ip.split(':');
+    if (ip.length !== 4) return false;
+    for (var i in ip) if (isNaN(ip[i])) return false;
+    bannedIP.push(ip.join(':'));
+    writeBannedIP(bannedIP);
+    return true;
+};
+
+Server.getBannedIP = function(){
+    return bannedIP;
+};
+
 
 /**
  * 사람 관련 객체입니다
@@ -507,14 +520,20 @@ function Human() {
         this.getSocket().emit('kick', {
             strMessage: reason
         });
-        console.log(this.getIP());
         bannedIP.push(this.getIP());
         writeBannedIP(bannedIP);
     };
 
     this.isBanned = function(){
-        console.log(this.getIP());
         return bannedIP.indexOf(this.getIP()) !== -1;
+    };
+
+    this.pardon = function(){
+        if (bannedIP.indexOf(this.getIP()) !== -1){
+            bannedIP.splice(this.getIP());
+            writeBannedIP(bannedIP);
+        }
+        return this;
     };
 
     this.setfov = function(fov){
