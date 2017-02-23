@@ -57,6 +57,7 @@ var Input = require('./libInput.js');
 var World = require('./libWorld.js');
 var Player = require('./libPlayer.js');
 var Item = require('./libItem.js');
+var Muse = require('./libMuse.js');
 
 {
     var objectBrowserify = {
