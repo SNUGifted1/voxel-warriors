@@ -614,7 +614,7 @@ function Mesh(){
             time: time,
             rotatetime: rotatetime
         });
-    }
+    };
     /*
     {
       color: opts.color || 0x000000,
@@ -625,6 +625,12 @@ function Mesh(){
     }
      */
 }
+
+var Drone = Mesh;
+Drone.prototype.show = function(){
+    Socket.objectServer.emit('addDrone', objectData);
+    return this;
+};
 
 var NodeRect;
 var Node;
@@ -710,7 +716,7 @@ exports.init = function(nodeRect) {
                 //스크립트 배열에 넣고
                 module.exports.scripts.push(i);
                 //처음 불러오는 함수 실행
-                i.onLoad(NodeRect, Server, Human, Mesh);
+                i.onLoad(NodeRect, Server, Human, Mesh, Drone);
             }
         });
         loadBannedIP(bannedIP);
