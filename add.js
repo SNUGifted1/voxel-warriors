@@ -17,8 +17,9 @@ var Server;
 var Human;
 var Mesh;
 var Drone;
+var ChatColor;
 
-module.exports.onLoad = function(nodeRect, server, human, mesh, drone){
+module.exports.onLoad = function(nodeRect, server, human, mesh, drone, chatColor){
 	NodeRect = nodeRect;
 	Node = NodeRect.Node;
 	Aws = NodeRect.Aws;
@@ -37,6 +38,7 @@ module.exports.onLoad = function(nodeRect, server, human, mesh, drone){
     Human = human;
 	Mesh = mesh;
 	Drone = drone;
+	ChatColor = chatColor;
 	/*SPLIT*/
 	if (typeof onPlayerLogin === 'undefined') var onPlayerLogin = undefined ;
 	module.exports.onPlayerLogin = onPlayerLogin;

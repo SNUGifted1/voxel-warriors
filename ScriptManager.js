@@ -34,7 +34,6 @@ Server.getExactPlayer = function(name) {
             return new Human().setHumanIdent(i);
         }
     }
-    console.log("Cannot Find Player " + name + ".");
     return;
 };
 
@@ -50,7 +49,6 @@ Server.getPlayer = function(name) {
             return new Human().setHumanIdent(i);
         }
     }
-    console.log("Cannot Find Player " + name + ".");
     return;
 };
 
@@ -70,22 +68,16 @@ Server.getAllPlayers = function() {
 /**
  * 메시지를 전송합니다.
  * @author Scripter36(1350adwx)
- * @param  {String} sender   보내는 사람 이름     * @param  {String} message  보낼 내용
- * @param  {Human} receiver 받는 Human
- * @deprecated Human.sendMessage를 이용해 주세요.
+ * @param  {String} sender   보내는 사람 이름
+ * @param  {String} message  보낼 내용
  */
-Server.sendMessage = function(sender, message, receiver) {
-    if (typeof receiver === undefined || receiver instanceof Human === false) {
-        Socket.objectServer.emit('eventChat', {
-            'strName': sender.toString(),
-            'strMessage': message.toString()
-        });
-    } else {
-        receiver.getSocket().emit('eventChat', {
-            'strName': sender.toString(),
-            'strMessage': message.toString()
-        });
-    }
+Server.sendMessage = function(sender, message) {
+    if (sender === "") info(message);
+    else info(sender + ": " + message);
+    Socket.objectServer.emit('eventChat', {
+        'strName': sender.toString(),
+        'strMessage': message.toString()
+    });
 };
 
 /**
@@ -138,17 +130,51 @@ Server.isPhaseChange = function() {
     return exports.isPhaseChange;
 };
 
-Server.banIP = function(ip){
+Server.banIP = function(ip) {
     ip = ip.split(':');
     if (ip.length !== 4) return false;
-    for (var i in ip) if (isNaN(ip[i])) return false;
+    for (var i in ip)
+        if (isNaN(ip[i])) return false;
     bannedIP.push(ip.join(':'));
     writeBannedIP(bannedIP);
     return true;
 };
 
-Server.getBannedIP = function(){
+Server.getBannedIP = function() {
     return bannedIP;
+};
+
+Server.info = function(message) {
+    info(message);
+}
+
+
+var ChatColor = {
+    Reset: "\x1b[0m",
+    Bright: "\x1b[1m",
+    Dim: "\x1b[2m",
+    Underscore: "\x1b[4m",
+    Blink: "\x1b[5m",
+    Reverse: "\x1b[7m",
+    Hidden: "\x1b[8m",
+
+    FgBlack: "\x1b[30m",
+    FgRed: "\x1b[31m",
+    FgGreen: "\x1b[32m",
+    FgYellow: "\x1b[33m",
+    FgBlue: "\x1b[34m",
+    FgMagenta: "\x1b[35m",
+    FgCyan: "\x1b[36m",
+    FgWhite: "\x1b[37m",
+
+    BgBlack: "\x1b[40m",
+    BgRed: "\x1b[41m",
+    BgGreen: "\x1b[42m",
+    BgYellow: "\x1b[43m",
+    BgBlue: "\x1b[44m",
+    BgMagenta: "\x1b[45m",
+    BgCyan: "\x1b[46m",
+    BgWhite: "\x1b[47m"
 };
 
 
@@ -509,7 +535,7 @@ function Human() {
         });
     };
 
-    this.getIP = function(){
+    this.getIP = function() {
         var ip = this.getSocket().conn.remoteAddress;
         if (ip === "::1") return "1";
         else return ip.split(":")[3];
@@ -524,26 +550,26 @@ function Human() {
         writeBannedIP(bannedIP);
     };
 
-    this.isBanned = function(){
+    this.isBanned = function() {
         return bannedIP.indexOf(this.getIP()) !== -1;
     };
 
-    this.pardon = function(){
-        if (bannedIP.indexOf(this.getIP()) !== -1){
+    this.pardon = function() {
+        if (bannedIP.indexOf(this.getIP()) !== -1) {
             bannedIP.splice(this.getIP());
             writeBannedIP(bannedIP);
         }
         return this;
     };
 
-    this.setfov = function(fov){
+    this.setfov = function(fov) {
         this.getSocket().emit('setfov', {
             fov: fov
         });
     };
 }
 
-function Mesh(){
+function Mesh() {
     var objectData = {
         id: "0",
         size: [],
@@ -551,58 +577,58 @@ function Mesh(){
         rotation: [0, 0, 0],
         Material: null
     };
-    this.setID = function(id){
+    this.setID = function(id) {
         objectData.id = id;
         return this;
     };
-    this.getID = function(){
+    this.getID = function() {
         return objectData.id;
     };
-    this.setSize = function(size){
+    this.setSize = function(size) {
         objectData.size = size;
         return this;
     };
-    this.getSize = function(){
+    this.getSize = function() {
         return objectData.size;
     };
-    this.setPosition = function(position){
+    this.setPosition = function(position) {
         objectData.position = position;
         return this;
     };
-    this.getPosition = function(){
+    this.getPosition = function() {
         return objectData.position;
     };
-    this.setRotation = function(rotation){
+    this.setRotation = function(rotation) {
         objectData.rotation = rotation;
         return this;
     };
-    this.getRotation = function(){
+    this.getRotation = function() {
         return objectData.rotation;
     };
-    this.setMaterial = function(material){
+    this.setMaterial = function(material) {
         objectData.Material = material;
         return this;
     };
-    this.getMaterial = function(){
+    this.getMaterial = function() {
         return objectData.Material;
     };
-    this.show = function(){
+    this.show = function() {
         Socket.objectServer.emit('addMesh', objectData);
         return this;
     };
-    this.update = function(){
+    this.update = function() {
         Socket.objectServer.emit('updateMesh', objectData);
         return this;
     };
-    this.remove = function(){
+    this.remove = function() {
         Socket.objectServer.emit('removeMesh', objectData);
         return this;
     };
-    this.moveTo = function(moves, time, rotatetime){
-        for (let i in moves){
-            if (moves[i].type === "move"){
+    this.moveTo = function(moves, time, rotatetime) {
+        for (let i in moves) {
+            if (moves[i].type === "move") {
                 this.setPosition(moves[i].position);
-            }else if (moves[i].type === "rotate"){
+            } else if (moves[i].type === "rotate") {
                 var rotation = this.getRotation().slice();
                 rotation[1] += moves[i].rotation;
                 this.setRotation(rotation);
@@ -627,7 +653,7 @@ function Mesh(){
 }
 
 var Drone = Mesh;
-Drone.prototype.show = function(){
+Drone.prototype.show = function() {
     Socket.objectServer.emit('addDrone', objectData);
     return this;
 };
@@ -649,6 +675,21 @@ var Xml;
 var bannedIP = [];
 /** @type {Module} 파일 입출력 모듈입니다. */
 var fs = require('fs');
+
+function info(message) {
+    var date = new Date();
+
+    var hour = date.getHours();
+    hour = (hour < 10 ? "0" : "") + hour;
+
+    var min = date.getMinutes();
+    min = (min < 10 ? "0" : "") + min;
+
+    var sec = date.getSeconds();
+    sec = (sec < 10 ? "0" : "") + sec;
+
+    console.log("\x1b[1m\x1b[36m" + hour + ":" + min + ":" + sec + "\x1b[37m [INFO] " + message + "\x1b[0m");
+}
 
 function loadBannedIP(array) {
     fs.exists('./bannedIP.txt', function(exists) {
@@ -677,7 +718,7 @@ function writeBannedIP(array) {
  * @author Scripter36(1350adwx)
  * @param {Object} nodeRect NodeRect 모듈
  */
-exports.init = function(nodeRect) {
+exports.init = function(nodeRect, doneInit) {
     /** @type {NodeRect} 각종 기능을 위해 가져옵니다. */
     NodeRect = nodeRect;
     Node = NodeRect.Node;
@@ -711,12 +752,16 @@ exports.init = function(nodeRect) {
             if (file.endsWith(".js")) {
                 //카운트 올리고
                 count++;
+                //로딩 알림
+                info(file.substring(0, file.length - 3) + " 로드 중");
                 //require 한 뒤
                 var i = requireFromString(Add[0] + fs.readFileSync(path + "/" + file).toString() + Add[1], "");
                 //스크립트 배열에 넣고
                 module.exports.scripts.push(i);
+                //활성화 알림
+                info(file.substring(0, file.length - 3) + " 활성화 중");
                 //처음 불러오는 함수 실행
-                i.onLoad(NodeRect, Server, Human, Mesh, Drone);
+                i.onLoad(NodeRect, Server, Human, Mesh, Drone, ChatColor);
             }
         });
         loadBannedIP(bannedIP);
@@ -727,8 +772,8 @@ exports.init = function(nodeRect) {
         exports.sendingPlayerData = false;
         //PhaseChange 여부
         exports.isPhaseChange = true;
-        //로그 띄웁니다.
-        console.log("[ScriptManager] " + count + " 개의 스크립트를 로딩했습니다.");
+        //완료
+        doneInit.done();
     });
 };
 
@@ -778,7 +823,7 @@ exports.PlayerLoginEvent = function(objectSocket, objectData, resultData) {
         return this;
     };
 
-    this.getHuman = function(){
+    this.getHuman = function() {
         return new Human().setHumanIdent(Player.objectPlayer[objectSocket.strIdent].strIdent);
     };
 
@@ -862,7 +907,7 @@ exports.PlayerLoginEvent = function(objectSocket, objectData, resultData) {
  */
 exports.callPlayerLoginEvent = function(objectData, objectSocket) {
     let event = new exports.PlayerLoginEvent(objectData, objectSocket);
-    if (event.getHuman().isBanned()){
+    if (event.getHuman().isBanned()) {
         event.setCanceled();
         event.setCanceledMessage("서버 관리자에 의해 밴 당했습니다.");
     }
@@ -871,7 +916,8 @@ exports.callPlayerLoginEvent = function(objectData, objectSocket) {
             i.onPlayerLogin(event);
         }
     }
-    console.log(event.getName() + "(" + event.getHuman().getIP() + ") 님이 로그인 하셨습니다.");
+    info(ChatColor.FgCyan + event.getName() + ChatColor.FgWhite + "[/" + event.getHuman().getIP() + "] 님이 엔티티 아이디 " + event.getHuman().getHumanIdent() + " 에서 로그인 했습니다.");
+    Server.sendMessage("", event.getName() + " 님이 게임에 참여했습니다.");
     return event;
 };
 
@@ -1081,6 +1127,7 @@ exports.callPlayerChatEvent = function(objectData, objectSocket) {
             i.onPlayerChat(event);
         }
     }
+    info(event.getHuman().getName() + ": " + event.getMessage());
     return event;
 };
 
@@ -1326,6 +1373,8 @@ exports.callPlayerQuitEvent = function(objectSocket) {
             i.onPlayerQuit(event);
         }
     }
+    info(ChatColor.FgCyan + event.getName() + ChatColor.FgWhite + "[/" + event.getHuman().getIP() + "] 님이 로그아웃 했습니다.");
+    Server.sendMessage("", event.getName() + " 님이 게임에서 나갔습니다.");
     return event;
 };
 
@@ -1563,9 +1612,9 @@ exports.callServerTickEvent = function() {
     }
 };
 
-exports.ConsoleCommandEvent = function(line){
+exports.ConsoleCommandEvent = function(line) {
     var message = line;
-    this.getMessage = function(){
+    this.getMessage = function() {
         return message;
     };
 };

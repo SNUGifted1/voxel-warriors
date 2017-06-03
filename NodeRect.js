@@ -386,7 +386,7 @@ var Express = {
 				var functionFilesystemDelete = function() {
 					Node.requireFs.unlink(__dirname + '/tmp/' + FilesystemRead_strFiles[FilesystemStatIterator_intIndex], function(objectError) {
 						if (objectError !== null) {
-							functionError();
+							functionError(objectError);
 
 							return;
 						}
@@ -397,12 +397,13 @@ var Express = {
 
 				var Errorsuccess_intTimestamp = new Date().getTime();
 
-				var functionError = function() {
-					Node.log([ 'NodeRect - Express', String(new Date().getTime() - Errorsuccess_intTimestamp), 'Error' ]);
+				var functionError = function(objectError) {
+					//Node.log([ 'NodeRect - Express', String(new Date().getTime() - Errorsuccess_intTimestamp), 'Error' ]);
+		            info("\x1b[31m" + objectError + "\x1b[0m");
 				};
 
 				var functionSuccess = function() {
-					Node.log([ 'NodeRect - Express', String(new Date().getTime() - Errorsuccess_intTimestamp), 'Success' ]);
+					//Node.log([ 'NodeRect - Express', String(new Date().getTime() - Errorsuccess_intTimestamp), 'Success' ]);
 				};
 
 				functionFilesystemRead();
@@ -412,6 +413,21 @@ var Express = {
 		}
 	}
 };
+
+function info(message){
+    var date = new Date();
+
+    var hour = date.getHours();
+    hour = (hour < 10 ? "0" : "") + hour;
+
+    var min  = date.getMinutes();
+    min = (min < 10 ? "0" : "") + min;
+
+    var sec  = date.getSeconds();
+    sec = (sec < 10 ? "0" : "") + sec;
+
+    console.log("\x1b[1m\x1b[36m" + hour + ":" + min + ":" + sec + "\x1b[37m [INFO] " + message + "\x1b[0m");
+}
 
 var Geoip = {
 	requireGeoip: null,

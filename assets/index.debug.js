@@ -67,7 +67,8 @@ var Muse = require('./libMuse.js');
         'Input': Input,
         'World': World,
         'Player': Player,
-        'Item': Item
+        'Item': Item,
+        'Muse': Muse
     };
 
     World.browserify(objectBrowserify);

@@ -1,5 +1,5 @@
 'use strict';
-
+var time = new Date().getTime();
 var NodeConf = require(__dirname + '/NodeConf.js')();
 var NodeRect = require(__dirname + '/NodeRect.js')();
 
@@ -16,6 +16,16 @@ var Postgres = NodeRect.Postgres;
 var Recaptcha = NodeRect.Recaptcha;
 var Socket = NodeRect.Socket;
 var Xml = NodeRect.Xml;
+
+var doneInit = {
+    maxCount: 3,
+    count: 0,
+    time: time,
+    done: function() {
+        doneInit.count++;
+        if (doneInit.count == doneInit.maxCount) info("완료! (" + ((new Date().getTime() - doneInit.time) / 1000) + "초)");
+    }
+};
 
 var VoxConf = require(__dirname + '/VoxConf.js')();
 
@@ -1312,7 +1322,7 @@ var Gameserver = {
 }
 
 {
-    Physics.init();
+    Physics.init(doneInit);
 
     Physics.functionWorldcol = function(intCoordinateX, intCoordinateY, intCoordinateZ) {
         if (intCoordinateY === 0) {
@@ -1328,15 +1338,15 @@ var Gameserver = {
 }
 
 {
-    World.init();
+    World.init(doneInit);
 }
 
 {
-    Player.init();
+    Player.init(doneInit);
 }
 
 {
-    Item.init();
+    Item.init(doneInit);
 
     Item.functionFlagInit = function(objectItem) {
         {
@@ -1490,7 +1500,7 @@ var Gameserver = {
             });
 
             objectClientrequest.on('error', function(objectError) {
-                functionError();
+                functionError(objectError);
             });
 
             objectClientrequest.setTimeout(60 * 1000, function() {
@@ -1502,12 +1512,13 @@ var Gameserver = {
 
         var Errorsuccess_intTimestamp = new Date().getTime();
 
-        var functionError = function() {
-            Node.log(['VoxRect', String(new Date().getTime() - Errorsuccess_intTimestamp), 'Error']);
+        var functionError = function(objectError) {
+            //Node.log(['VoxRect', String(new Date().getTime() - Errorsuccess_intTimestamp), 'Error']);
+            info("\x1b[31m" + objectError + "\x1b[0m");
         };
 
         var functionSuccess = function() {
-            Node.log(['VoxRect', String(new Date().getTime() - Errorsuccess_intTimestamp), 'Success']);
+            //Node.log(['VoxRect', String(new Date().getTime() - Errorsuccess_intTimestamp), 'Success']);
         };
 
         functionAdvertise();
@@ -1518,9 +1529,22 @@ var Gameserver = {
     functionInterval();
 }
 
+function info(message) {
+    var date = new Date();
 
+    var hour = date.getHours();
+    hour = (hour < 10 ? "0" : "") + hour;
+
+    var min = date.getMinutes();
+    min = (min < 10 ? "0" : "") + min;
+
+    var sec = date.getSeconds();
+    sec = (sec < 10 ? "0" : "") + sec;
+
+    console.log("\x1b[1m\x1b[36m" + hour + ":" + min + ":" + sec + "\x1b[37m [INFO] " + message + "\x1b[0m");
+}
 var ScriptManager = require(__dirname + '/ScriptManager.js');
-ScriptManager.init(NodeRect);
+ScriptManager.init(NodeRect, doneInit);
 var readline = require('readline');
 var r = readline.createInterface({
     input: process.stdin,
@@ -1530,8 +1554,8 @@ r.setPrompt('');
 r.prompt();
 r.on('line', function(line) {
     ScriptManager.callConsoleCommandEvent(line);
-	r.setPrompt('');
-	r.prompt();
+    r.setPrompt('');
+    r.prompt();
 });
 r.on('close', function() {
     process.exit();

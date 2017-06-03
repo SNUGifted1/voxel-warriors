@@ -18,7 +18,7 @@ var World = {
 	intFlagBlue: [],
 	intSeparator: [],
 
-	init: function() {
+	init: function(doneInit) {
 		{
 			World.requireSchemapack = require('schemapack').build([{
 				'intCoordinate': [ 'varint' ],
@@ -44,6 +44,7 @@ var World = {
 
 			World.intSeparator = [];
 		}
+		doneInit.done();
 	},
 
 	dispel: function() {
