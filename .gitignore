@@ -1,3 +1,5 @@
 /.project
 assets/index.js
 assets/editor.js
+node_modules
+assets/node_modules
