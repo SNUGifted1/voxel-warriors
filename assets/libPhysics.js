@@ -11,7 +11,7 @@ var Physics = {
 
 	functionWorldcol: null,
 
-	init: function(doneInit) {
+	init: function() {
 		{
 
 
@@ -21,7 +21,6 @@ var Physics = {
 			}
 
 		}
-		doneInit.done();
 	},
 
 	dispel: function() {

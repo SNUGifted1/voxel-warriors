@@ -12,7 +12,7 @@ var Player = {
 
 	objectRepository: {},
 
-	init: function(doneInit) {
+	init: function() {
 		{
 			Player.requireSchemapack = require('schemapack').build([{
 				'strIdent': 'string',
@@ -66,7 +66,6 @@ var Player = {
 				Player.objectRepository['characterBlue'].objectCharacter.push(Voxel.characterCreate('characterBlue'));
 			}
 		}
-		doneInit.done();
 	},
 
 	dispel: function() {

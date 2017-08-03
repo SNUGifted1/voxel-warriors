@@ -16,7 +16,7 @@ var Item = {
 	functionFlagInit: null,
 	functionFlagPlayer: null,
 
-	init: function(doneInit) {
+	init: function() {
 		{
 			Item.requireSchemapack = require('schemapack').build([{
 				'strIdent': 'string',
@@ -65,7 +65,6 @@ var Item = {
 
 			};
 		}
-		doneInit.done();
 	},
 
 	dispel: function() {
